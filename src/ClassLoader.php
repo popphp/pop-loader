@@ -224,7 +224,7 @@ class ClassLoader
         if ($classFile !== false) {
             include_once $classFile;
         } else if ($this->strict) {
-            throw new Exception("The class file '" . $classFile . "' does not exist.");
+            throw new Exception('The class file could not be found.');
         }
     }
 
