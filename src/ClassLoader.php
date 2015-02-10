@@ -114,14 +114,14 @@ class ClassLoader
     public function loadClassMapFromDir($dir)
     {
         if (!file_exists($dir)) {
-            throw new Exception('That class map file does not exist.');
+            throw new Exception('That class map directory does not exist.');
         }
 
         $map      = new ClassMapper('/home/nick/Desktop/Pop');
         $classMap = $map->getClassMap();
 
         if (!is_array($classMap)) {
-            throw new Exception('The class map file did not return an array.');
+            throw new Exception('The class map directory did not parse correctly and return an array.');
         }
 
         return $this->loadClassMap($classMap);
