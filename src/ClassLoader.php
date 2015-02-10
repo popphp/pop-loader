@@ -47,49 +47,84 @@ class ClassLoader
     protected $classmap = [];
 
     /**
+     * Strict flag
+     * @var boolean
+     */
+    protected $strict = true;
+
+    /**
      * Constructor
      *
      * Instantiate the class loader object
      *
-     * @param  string  $map
      * @param  boolean $fallback
+     * @param  boolean $throw
+     * @param  boolean $strict
      * @return ClassLoader
      */
-    public function __construct($map = null, $fallback = false)
+    public function __construct($fallback = false, $throw = true, $strict = true)
     {
-        if ($fallback) {
-            spl_autoload_register($this, true, false);
-        } else {
-            spl_autoload_register($this, true, true);
-        }
-
-        if (null !== $map) {
-            $this->loadClassMap($map);
-        }
+        $this->register('Pop\Loader\\', __DIR__);
+        spl_autoload_register($this, $throw, (!$fallback));
+        $this->strict = (bool)$strict;
     }
 
     /**
-     * Load a class map file
+     * Load a class map
      *
-     * @param  string $map
+     * @param  array $map
      * @throws Exception
      * @return ClassLoader
      */
-    public function loadClassMap($map)
+    public function loadClassMap(array $map)
     {
-        if (!file_exists($map)) {
+        $this->classmap = array_merge($this->classmap, $map);
+        return $this;
+    }
+
+    /**
+     * Load a class map from file
+     *
+     * @param  string $file
+     * @throws Exception
+     * @return ClassLoader
+     */
+    public function loadClassMapFromFile($file)
+    {
+        if (!file_exists($file)) {
             throw new Exception('That class map file does not exist.');
         }
 
-        $classMap = include $map;
+        $classMap = include $file;
 
         if (!is_array($classMap)) {
             throw new Exception('The class map file did not return an array.');
         }
 
-        $this->classmap = array_merge($this->classmap, $classMap);
+        return $this->loadClassMap($classMap);
+    }
 
-        return $this;
+    /**
+     * Load a class map from directory
+     *
+     * @param  string $dir
+     * @throws Exception
+     * @return ClassLoader
+     */
+    public function loadClassMapFromDir($dir)
+    {
+        if (!file_exists($dir)) {
+            throw new Exception('That class map file does not exist.');
+        }
+
+        $map      = new ClassMapper('/home/nick/Desktop/Pop');
+        $classMap = $map->getClassMap();
+
+        if (!is_array($classMap)) {
+            throw new Exception('The class map file did not return an array.');
+        }
+
+        return $this->loadClassMap($classMap);
     }
 
     /**
@@ -151,42 +186,45 @@ class ClassLoader
      */
     public function __invoke($class)
     {
-        if (array_key_exists($class, $this->classmap)) {
-            $class = realpath($this->classmap[$class]);
-            if ($class === false) {
-                throw new Exception('That class file does not exist.');
-            }
-            require_once $class;
-        } else {
-            $prefix    = null;
-            $separator = (strpos($class, '\\') !== false) ? '\\' : '_';
-            $classFile = str_replace($separator, DIRECTORY_SEPARATOR, $class) . '.php';
+        $classFile  = false;
+        $psr4Prefix = null;
+        $psr0Prefix = null;
+        $separator  = (strpos($class, '\\') !== false) ? '\\' : '_';
 
-            // Check the PSR-4 prefixes
+        // Check the class map property
+        if (array_key_exists($class, $this->classmap)) {
+            $classFile = realpath($this->classmap[$class]);
+        // Else, try and auto-detect the class called
+        } else {
+            // Try and detect a PSR-4 prefix
             foreach ($this->psr4 as $key => $value) {
                 if (substr($class, 0, strlen($key)) == $key) {
-                    $prefix = $key;
+                    $psr4Prefix = $key;
                 }
             }
 
-            // Check the PSR-0 prefixes
-            if (null === $prefix) {
+            // If PSR-4 prefix detected
+            if (null !== $psr4Prefix) {
+                $psr4ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, substr($class, strlen($psr4Prefix))) . '.php';
+                $classFile     = realpath($this->psr4[$psr4Prefix] . DIRECTORY_SEPARATOR . $psr4ClassFile);
+            // Else, try to detect a PSR-0 prefix
+            } else {
+                $psr0ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, $class) . '.php';
                 foreach ($this->psr0 as $key => $value) {
                     if (substr($class, 0, strlen($key)) == $key) {
-                        $prefix = $key;
+                        $psr0Prefix = $key;
                     }
                 }
-            }
-
-            if (null === $prefix) {
-                throw new Exception('Unable to map that class file.');
-            } else {
-                $classFile = $this->prefixes[$prefix] . DIRECTORY_SEPARATOR . $classFile;
-                if (!include_once($classFile)) {
-                    return;
+                if (null !== $psr0Prefix) {
+                    $classFile = realpath($this->psr0[$psr0Prefix] . DIRECTORY_SEPARATOR . $psr0ClassFile);
                 }
             }
+        }
 
+        if ($classFile !== false) {
+            include_once $classFile;
+        } else if ($this->strict) {
+            throw new Exception("The class file '" . $classFile . "' does not exist.");
         }
     }
 
