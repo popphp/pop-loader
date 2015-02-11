@@ -47,49 +47,98 @@ class ClassLoader
     protected $classmap = [];
 
     /**
-     * Strict flag
-     * @var boolean
-     */
-    protected $strict = true;
-
-    /**
      * Constructor
      *
      * Instantiate the class loader object
      *
-     * @param  boolean $fallback
+     * @param  boolean $self
+     * @param  boolean $prepend
      * @param  boolean $throw
-     * @param  boolean $strict
      * @return ClassLoader
      */
-    public function __construct($fallback = false, $throw = true, $strict = true)
+    public function __construct($self = true, $prepend = false, $throw = true)
     {
-        $this->register('Pop\Loader\\', __DIR__);
-        spl_autoload_register($this, $throw, (!$fallback));
-        $this->strict = (bool)$strict;
+        if ($self) {
+            $this->addPsr4('Pop\Loader\\', __DIR__);
+            $this->register($prepend, $throw);
+        }
     }
 
     /**
-     * Load a class map
+     * Register this instance with the autoload stack
+     *
+     * @param  boolean $prepend
+     * @param  boolean $throw
+     * @return ClassLoader
+     */
+    public function register($prepend, $throw = true)
+    {
+        spl_autoload_register($this, (bool)$throw, (bool)$prepend);
+        return $this;
+    }
+
+    /**
+     * Unregister this instance with the autoload stack
+     *
+     * @return ClassLoader
+     */
+    public function unregister()
+    {
+        spl_autoload_unregister($this);
+        return $this;
+    }
+
+    /**
+     * Get the PSR-0 prefixes
+     *
+     * @return array
+     */
+    public function getPrefixes()
+    {
+        return array_keys($this->psr0);
+    }
+
+    /**
+     * Get the PSR-0 prefixes
+     *
+     * @return array
+     */
+    public function getPrefixesPsr4()
+    {
+        return array_keys($this->psr4);
+    }
+
+    /**
+     * Get the class map array
+     *
+     * @return array
+     */
+    public function getClassMap()
+    {
+        return $this->classmap;
+    }
+
+    /**
+     * Add a class map array
      *
      * @param  array $map
      * @throws Exception
      * @return ClassLoader
      */
-    public function loadClassMap(array $map)
+    public function addClassMap(array $map)
     {
         $this->classmap = array_merge($this->classmap, $map);
         return $this;
     }
 
     /**
-     * Load a class map from file
+     * Add a class map from file
      *
      * @param  string $file
      * @throws Exception
      * @return ClassLoader
      */
-    public function loadClassMapFromFile($file)
+    public function addClassMapFromFile($file)
     {
         if (!file_exists($file)) {
             throw new Exception('That class map file does not exist.');
@@ -101,17 +150,17 @@ class ClassLoader
             throw new Exception('The class map file did not return an array.');
         }
 
-        return $this->loadClassMap($classMap);
+        return $this->addClassMap($classMap);
     }
 
     /**
-     * Load a class map from directory
+     * Generate and add a class map from directory
      *
      * @param  string $dir
      * @throws Exception
      * @return ClassLoader
      */
-    public function loadClassMapFromDir($dir)
+    public function addClassMapFromDir($dir)
     {
         if (!file_exists($dir)) {
             throw new Exception('That class map directory does not exist.');
@@ -124,19 +173,18 @@ class ClassLoader
             throw new Exception('The class map directory did not parse correctly and return an array.');
         }
 
-        return $this->loadClassMap($classMap);
+        return $this->addClassMap($classMap);
     }
 
     /**
-     * Register a prefix and directory location with the autoloader
+     * Register a PSR-0 prefix and directory location with the autoloader
      *
      * @param  string  $prefix
      * @param  string  $directory
-     * @param  boolean $psr4
      * @throws Exception
      * @return ClassLoader
      */
-    public function register($prefix, $directory, $psr4 = true)
+    public function add($prefix, $directory)
     {
         $dir = realpath($directory);
 
@@ -144,11 +192,7 @@ class ClassLoader
             throw new Exception('That directory does not exist.');
         }
 
-        if ($psr4) {
-            $this->psr4[$prefix] = $dir;
-        } else {
-            $this->psr0[$prefix] = $dir;
-        }
+        $this->psr0[$prefix] = $dir;
 
         return $this;
     }
@@ -158,33 +202,81 @@ class ClassLoader
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @throws Exception
      * @return ClassLoader
      */
-    public function registerPsr4($prefix, $directory)
+    public function addPsr4($prefix, $directory)
     {
-        return $this->register($prefix, $directory);
+        $dir = realpath($directory);
+
+        if ($dir === false) {
+            throw new Exception('That directory does not exist.');
+        }
+
+        if (substr($prefix, -1) != '\\') {
+            throw new Exception('The PSR-4 prefix must end with a namespace separator.');
+        }
+
+        $this->psr4[$prefix] = $dir;
+
+        return $this;
     }
 
     /**
-     * Register a PSR-0 prefix and directory location with the autoloader
+     * Alias to add()
      *
      * @param  string  $prefix
      * @param  string  $directory
      * @return ClassLoader
      */
-    public function registerPsr0($prefix, $directory)
+    public function addPsr0($prefix, $directory)
     {
-        return $this->register($prefix, $directory, false);
+        return $this->add($prefix, $directory);
     }
 
     /**
-     * Invoke the class
+     * Alias to add()
+     *
+     * @param  string  $prefix
+     * @param  string  $directory
+     * @return ClassLoader
+     */
+    public function set($prefix, $directory)
+    {
+        return $this->add($prefix, $directory);
+    }
+
+    /**
+     * Alias to add()
+     *
+     * @param  string  $prefix
+     * @param  string  $directory
+     * @return ClassLoader
+     */
+    public function setPsr0($prefix, $directory)
+    {
+        return $this->add($prefix, $directory);
+    }
+
+    /**
+     * Alias to addPsr4()
+     *
+     * @param  string  $prefix
+     * @param  string  $directory
+     * @return ClassLoader
+     */
+    public function setPsr4($prefix, $directory)
+    {
+        return $this->addPsr4($prefix, $directory);
+    }
+
+    /**
+     * Find the class file
      *
      * @param  string $class
-     * @throws Exception
-     * @return void
+     * @return mixed
      */
-    public function __invoke($class)
+    public function findFile($class)
     {
         $classFile  = false;
         $psr4Prefix = null;
@@ -221,11 +313,35 @@ class ClassLoader
             }
         }
 
+        return $classFile;
+    }
+
+    /**
+     * Find and load the class file
+     *
+     * @param  string $class
+     * @return boolean
+     */
+    public function loadClass($class)
+    {
+        $classFile = $this->findFile($class);
         if ($classFile !== false) {
-            include_once $classFile;
-        } else if ($this->strict) {
-            throw new Exception('The class file could not be found.');
+            include $classFile;
+            return true;
+        } else {
+            return false;
         }
+    }
+
+    /**
+     * Invoke the class
+     *
+     * @param  string $class
+     * @return void
+     */
+    public function __invoke($class)
+    {
+        $this->loadClass($class);
     }
 
 }
