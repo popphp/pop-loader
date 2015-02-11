@@ -3,7 +3,7 @@
     "description": "Pop Loader Component for Pop PHP Framework",
     "keywords": [
         "loader",
-        "autoloader"
+        "autoloader",
         "psr-0",
         "psr-4",
         "pop",
