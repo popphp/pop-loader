@@ -1,0 +1,34 @@
+{
+    "name": "popphp/pop-loader",
+    "description": "Pop Loader Component for Pop PHP Framework",
+    "keywords": [
+        "loader",
+        "autoloader"
+        "psr-0",
+        "psr-4",
+        "pop",
+        "pop php"
+    ],
+    "homepage": "http://www.popphp.org/",
+    "license": "New BSD",
+    "authors": [
+        {
+            "name": "Nick Sagona",
+            "email": "dev@nolainteractive.com",
+            "homepage": "http://www.nolainteractive.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pop\\Loader\\": "src/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0.x-dev"
+        }
+    }
+}
