@@ -44,7 +44,13 @@ class ClassLoader
      * Class map array
      * @var array
      */
-    protected $classmap = [];
+    protected $classMap = [];
+
+    /**
+     * Class map authoritative flag
+     * @var boolean
+     */
+    protected $classMapAuthoritative = false;
 
     /**
      * Constructor
@@ -115,7 +121,7 @@ class ClassLoader
      */
     public function getClassMap()
     {
-        return $this->classmap;
+        return $this->classMap;
     }
 
     /**
@@ -127,7 +133,7 @@ class ClassLoader
      */
     public function addClassMap(array $map)
     {
-        $this->classmap = array_merge($this->classmap, $map);
+        $this->classMap = array_merge($this->classMap, $map);
         return $this;
     }
 
@@ -177,14 +183,37 @@ class ClassLoader
     }
 
     /**
-     * Register a PSR-0 prefix and directory location with the autoloader
+     * Set the class map as the authoritative loader, halting any searches via prefixes
+     *
+     * @param  boolean $authoritative
+     * @return ClassLoader
+     */
+    public function setClassMapAuthoritative($authoritative)
+    {
+        $this->classMapAuthoritative = (bool)$authoritative;
+        return $this;
+    }
+
+    /**
+     * Determine if the class map is the authoritative loader
+     *
+     * @return boolean
+     */
+    public function isClassMapAuthoritative()
+    {
+        return $this->classMapAuthoritative;
+    }
+
+    /**
+     * Add a PSR-0 prefix and directory location to the autoloader instance
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @throws Exception
      * @return ClassLoader
      */
-    public function add($prefix, $directory)
+    public function add($prefix, $directory, $prepend = false)
     {
         $dir = realpath($directory);
 
@@ -192,20 +221,25 @@ class ClassLoader
             throw new Exception('That directory does not exist.');
         }
 
-        $this->psr0[$prefix] = $dir;
+        if ($prepend) {
+            $this->psr0 = array_merge([$prefix => $dir], $this->psr0);
+        } else {
+            $this->psr0[$prefix] = $dir;
+        }
 
         return $this;
     }
 
     /**
-     * Register a PSR-4 prefix and directory location with the autoloader
+     * Add a PSR-4 prefix and directory location to the autoloader instance
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @throws Exception
      * @return ClassLoader
      */
-    public function addPsr4($prefix, $directory)
+    public function addPsr4($prefix, $directory, $prepend = false)
     {
         $dir = realpath($directory);
 
@@ -217,7 +251,11 @@ class ClassLoader
             throw new Exception('The PSR-4 prefix must end with a namespace separator.');
         }
 
-        $this->psr4[$prefix] = $dir;
+        if ($prepend) {
+            $this->psr4 = array_merge([$prefix => $dir], $this->psr4);
+        } else {
+            $this->psr4[$prefix] = $dir;
+        }
 
         return $this;
     }
@@ -227,11 +265,12 @@ class ClassLoader
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @return ClassLoader
      */
-    public function addPsr0($prefix, $directory)
+    public function addPsr0($prefix, $directory, $prepend = false)
     {
-        return $this->add($prefix, $directory);
+        return $this->add($prefix, $directory, $prepend);
     }
 
     /**
@@ -239,11 +278,12 @@ class ClassLoader
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @return ClassLoader
      */
-    public function set($prefix, $directory)
+    public function set($prefix, $directory, $prepend = false)
     {
-        return $this->add($prefix, $directory);
+        return $this->add($prefix, $directory, $prepend);
     }
 
     /**
@@ -251,11 +291,12 @@ class ClassLoader
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @return ClassLoader
      */
-    public function setPsr0($prefix, $directory)
+    public function setPsr0($prefix, $directory, $prepend = false)
     {
-        return $this->add($prefix, $directory);
+        return $this->add($prefix, $directory, $prepend);
     }
 
     /**
@@ -263,11 +304,12 @@ class ClassLoader
      *
      * @param  string  $prefix
      * @param  string  $directory
+     * @param  boolean $prepend
      * @return ClassLoader
      */
-    public function setPsr4($prefix, $directory)
+    public function setPsr4($prefix, $directory, $prepend = false)
     {
-        return $this->addPsr4($prefix, $directory);
+        return $this->addPsr4($prefix, $directory, $prepend);
     }
 
     /**
@@ -278,42 +320,45 @@ class ClassLoader
      */
     public function findFile($class)
     {
-        $classFile  = false;
         $psr4Prefix = null;
         $psr0Prefix = null;
         $separator  = (strpos($class, '\\') !== false) ? '\\' : '_';
 
-        // Check the class map property
-        if (array_key_exists($class, $this->classmap)) {
-            $classFile = realpath($this->classmap[$class]);
-        // Else, try and auto-detect the class called
-        } else {
-            // Try and detect a PSR-4 prefix
-            foreach ($this->psr4 as $key => $value) {
-                if (substr($class, 0, strlen($key)) == $key) {
-                    $psr4Prefix = $key;
-                }
-            }
+        // Check the class map for the class
+        if (array_key_exists($class, $this->classMap)) {
+            return realpath($this->classMap[$class]);
+        }
 
-            // If PSR-4 prefix detected
-            if (null !== $psr4Prefix) {
-                $psr4ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, substr($class, strlen($psr4Prefix))) . '.php';
-                $classFile     = realpath($this->psr4[$psr4Prefix] . DIRECTORY_SEPARATOR . $psr4ClassFile);
-            // Else, try to detect a PSR-0 prefix
-            } else {
-                $psr0ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, $class) . '.php';
-                foreach ($this->psr0 as $key => $value) {
-                    if (substr($class, 0, strlen($key)) == $key) {
-                        $psr0Prefix = $key;
-                    }
-                }
-                if (null !== $psr0Prefix) {
-                    $classFile = realpath($this->psr0[$psr0Prefix] . DIRECTORY_SEPARATOR . $psr0ClassFile);
-                }
+        // If class map is the authoritative loader, stop searching
+        if ($this->classMapAuthoritative) {
+            return false;
+        }
+
+        // Try and detect a PSR-4 prefix
+        foreach ($this->psr4 as $key => $value) {
+            if (substr($class, 0, strlen($key)) == $key) {
+                $psr4Prefix = $key;
             }
         }
 
-        return $classFile;
+        if (null !== $psr4Prefix) {
+            $psr4ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, substr($class, strlen($psr4Prefix))) . '.php';
+            return realpath($this->psr4[$psr4Prefix] . DIRECTORY_SEPARATOR . $psr4ClassFile);
+        }
+
+        // Try and detect a PSR-0 prefix
+        $psr0ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, $class) . '.php';
+        foreach ($this->psr0 as $key => $value) {
+            if (substr($class, 0, strlen($key)) == $key) {
+                $psr0Prefix = $key;
+            }
+        }
+        if (null !== $psr0Prefix) {
+            return realpath($this->psr0[$psr0Prefix] . DIRECTORY_SEPARATOR . $psr0ClassFile);
+        }
+
+        // Else, nothing found, return false
+        return false;
     }
 
     /**
