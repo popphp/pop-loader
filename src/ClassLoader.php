@@ -127,12 +127,17 @@ class ClassLoader
     /**
      * Add a class map array
      *
-     * @param  array $map
+     * @param  array|ClassMapper $map
      * @throws Exception
      * @return ClassLoader
      */
-    public function addClassMap(array $map)
+    public function addClassMap($map)
     {
+        if (!is_array($map) && !($map instanceof ClassMapper)) {
+            throw new \InvalidArgumentException(
+                'Error: The $map parameter must be a class map array or an instance of Pop\Loader\ClassMapper.'
+            );
+        }
         $this->classMap = array_merge($this->classMap, $map);
         return $this;
     }
@@ -152,10 +157,6 @@ class ClassLoader
 
         $classMap = include $file;
 
-        if (!is_array($classMap)) {
-            throw new Exception('The class map file did not return an array.');
-        }
-
         return $this->addClassMap($classMap);
     }
 
@@ -174,10 +175,6 @@ class ClassLoader
 
         $map      = new ClassMapper('/home/nick/Desktop/Pop');
         $classMap = $map->getClassMap();
-
-        if (!is_array($classMap)) {
-            throw new Exception('The class map directory did not parse correctly and return an array.');
-        }
 
         return $this->addClassMap($classMap);
     }
