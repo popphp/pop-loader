@@ -13,6 +13,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader = new ClassLoader();
         $this->assertInstanceOf('Pop\Loader\ClassLoader', $autoloader);
     }
+
     /**
      * @runInSeparateProcess
      */
