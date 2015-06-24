@@ -105,6 +105,16 @@ class ClassLoader
     }
 
     /**
+     * Alias to getPrefixes()
+     *
+     * @return array
+     */
+    public function getPrefixesPsr0()
+    {
+        return $this->getPrefixes();
+    }
+
+    /**
      * Get the PSR-0 prefixes
      *
      * @return array
@@ -138,7 +148,10 @@ class ClassLoader
                 'Error: The $map parameter must be a class map array or an instance of Pop\Loader\ClassMapper.'
             );
         }
-        $this->classMap = array_merge($this->classMap, $map);
+
+        $this->classMap = ($map instanceof ClassMapper) ?
+            array_merge($this->classMap, $map->getClassMap()) : array_merge($this->classMap, $map);
+
         return $this;
     }
 
@@ -173,7 +186,7 @@ class ClassLoader
             throw new Exception('That class map directory does not exist.');
         }
 
-        $map      = new ClassMapper('/home/nick/Desktop/Pop');
+        $map      = new ClassMapper($dir);
         $classMap = $map->getClassMap();
 
         return $this->addClassMap($classMap);
