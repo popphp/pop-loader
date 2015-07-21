@@ -17,7 +17,8 @@ application's load times.
 INSTALL
 -------
 
-Install `pop-loader` using Composer.
+Download or clone this repository and follow the examples below to wire up the autoloading
+required by your application. Or, you can install `pop-loader` using Composer - ironic, I know :)
 
     composer require popphp/pop-loader
 
@@ -56,7 +57,7 @@ $test = new MyApp\Test();
 
 ### Using PSR-0
 
-There's also support for older PSR-0. If the folder structure and class was like this:
+There's also support for older the PSR-0 standard. If the folder structure and class was like this:
 
     app/
         MyApp/
