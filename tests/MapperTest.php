@@ -13,6 +13,10 @@ class MapperTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Pop\Loader\ClassMapper', $mapper);
         $this->assertTrue(isset($mapper->getClassMap()['Foo_Bar']));
         $this->assertTrue(isset($mapper->getClassMap()['MyApp\MyClass']));
+        $this->assertEquals(1, count($mapper->getSources()));
+        $this->assertTrue($mapper->hasSource(__DIR__ . '/src'));
+        $mapper->clearSources();
+        $this->assertFalse($mapper->hasSource(__DIR__ . '/src'));
     }
 
     public function testConstructorDirDoesNotExistException()
