@@ -342,10 +342,14 @@ class ClassLoader
             return false;
         }
 
+        // Sort array by key length, descending
+        array_multisort(array_map('strlen', array_keys($this->psr4)), SORT_DESC, $this->psr4);
+
         // Try and detect a PSR-4 prefix
         foreach ($this->psr4 as $key => $value) {
             if (substr($class, 0, strlen($key)) == $key) {
                 $psr4Prefix = $key;
+                break;
             }
         }
 
@@ -354,11 +358,15 @@ class ClassLoader
             return realpath($this->psr4[$psr4Prefix] . DIRECTORY_SEPARATOR . $psr4ClassFile);
         }
 
+        // Sort array by key length, descending
+        array_multisort(array_map('strlen', array_keys($this->psr0)), SORT_DESC, $this->psr0);
+
         // Try and detect a PSR-0 prefix
         $psr0ClassFile = str_replace($separator, DIRECTORY_SEPARATOR, $class) . '.php';
         foreach ($this->psr0 as $key => $value) {
             if (substr($class, 0, strlen($key)) == $key) {
                 $psr0Prefix = $key;
+                break;
             }
         }
         if (null !== $psr0Prefix) {
