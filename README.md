@@ -2,7 +2,7 @@ pop-loader
 ==========
 
 [![Build Status](https://travis-ci.org/popphp/pop-loader.svg?branch=master)](https://travis-ci.org/popphp/pop-loader)
-[![Coverage Status](http://www.popphp.org/cc/coverage.php?comp=pop-loader)](http://www.popphp.org/cc/pop-loader/)
+[![Coverage Status](http://cc.popphp.org/coverage.php?comp=pop-loader)](http://cc.popphp.org/pop-loader/)
 
 OVERVIEW
 --------
