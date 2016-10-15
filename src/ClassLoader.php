@@ -21,7 +21,7 @@ namespace Pop\Loader;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.1.0
+ * @version    3.0.0
  */
 class ClassLoader
 {
@@ -58,7 +58,6 @@ class ClassLoader
      * @param  boolean $self
      * @param  boolean $prepend
      * @param  boolean $throw
-     * @return ClassLoader
      */
     public function __construct($self = true, $prepend = false, $throw = true)
     {
@@ -97,27 +96,17 @@ class ClassLoader
      *
      * @return array
      */
-    public function getPrefixes()
+    public function getPsr0Prefixes()
     {
         return array_keys($this->psr0);
     }
 
     /**
-     * Alias to getPrefixes()
+     * Get the PSR-4 prefixes
      *
      * @return array
      */
-    public function getPrefixesPsr0()
-    {
-        return $this->getPrefixes();
-    }
-
-    /**
-     * Get the PSR-0 prefixes
-     *
-     * @return array
-     */
-    public function getPrefixesPsr4()
+    public function getPsr4Prefixes()
     {
         return array_keys($this->psr4);
     }

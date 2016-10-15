@@ -21,7 +21,7 @@ class MapperTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorDirDoesNotExistException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $mapper = new ClassMapper(__DIR__ . '/bad');
     }
 

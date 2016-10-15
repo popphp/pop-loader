@@ -31,7 +31,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->addPsr0('Foo', __DIR__ . '/src', true);
         $foo = new \Foo_Bar();
         $this->assertInstanceOf('Foo_Bar', $foo);
-        $this->assertEquals('Foo', $autoloader->getPrefixesPsr0()[0]);
+        $this->assertEquals('Foo', $autoloader->getPsr0Prefixes()[0]);
         $autoloader->unregister();
     }
 
@@ -41,7 +41,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->addPsr0('Foo', __DIR__ . '/src');
         $foo = new \Foo_Bar();
         $this->assertInstanceOf('Foo_Bar', $foo);
-        $this->assertEquals('Foo', $autoloader->getPrefixesPsr0()[0]);
+        $this->assertEquals('Foo', $autoloader->getPsr0Prefixes()[0]);
     }
 
     public function testSet()
@@ -50,7 +50,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->set('Foo', __DIR__ . '/src');
         $foo = new \Foo_Bar();
         $this->assertInstanceOf('Foo_Bar', $foo);
-        $this->assertEquals('Foo', $autoloader->getPrefixesPsr0()[0]);
+        $this->assertEquals('Foo', $autoloader->getPsr0Prefixes()[0]);
     }
 
     public function testSetPsr0()
@@ -59,7 +59,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->setPsr0('Foo', __DIR__ . '/src');
         $foo = new \Foo_Bar();
         $this->assertInstanceOf('Foo_Bar', $foo);
-        $this->assertEquals('Foo', $autoloader->getPrefixesPsr0()[0]);
+        $this->assertEquals('Foo', $autoloader->getPsr0Prefixes()[0]);
     }
 
     public function testAddPsr4()
@@ -68,7 +68,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->addPsr4('MyApp\\', __DIR__ . '/src');
         $app = new \MyApp\MyClass();
         $this->assertInstanceOf('MyApp\MyClass', $app);
-        $this->assertEquals('MyApp\\', $autoloader->getPrefixesPsr4()[1]);
+        $this->assertEquals('MyApp\\', $autoloader->getPsr4Prefixes()[1]);
     }
 
     public function testAddPsr4Prepend()
@@ -77,7 +77,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->addPsr4('MyApp\\', __DIR__ . '/src', true);
         $app = new \MyApp\MyClass();
         $this->assertInstanceOf('MyApp\MyClass', $app);
-        $this->assertEquals('MyApp\\', $autoloader->getPrefixesPsr4()[0]);
+        $this->assertEquals('MyApp\\', $autoloader->getPsr4Prefixes()[0]);
     }
 
     public function testSetPsr4()
@@ -86,26 +86,26 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
         $autoloader->setPsr4('MyApp\\', __DIR__ . '/src');
         $app = new \MyApp\MyClass();
         $this->assertInstanceOf('MyApp\MyClass', $app);
-        $this->assertEquals('MyApp\\', $autoloader->getPrefixesPsr4()[1]);
+        $this->assertEquals('MyApp\\', $autoloader->getPsr4Prefixes()[1]);
     }
 
     public function testAddDirDoesNotExistException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $autoloader = new ClassLoader();
         $autoloader->add('Foo', __DIR__ . '/bad');
     }
 
     public function testAddPsr4DirDoesNotExistException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $autoloader = new ClassLoader();
         $autoloader->setPsr4('MyApp\\', __DIR__ . '/bad');
     }
 
     public function testAddPsr4NoNamespaceSeparatorException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $autoloader = new ClassLoader();
         $autoloader->setPsr4('MyApp', __DIR__ . '/src');
     }
@@ -120,7 +120,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testAddClassMapInvalidArgumentException()
     {
-        $this->setExpectedException('InvalidArgumentException');
+        $this->expectException('InvalidArgumentException');
         $autoloader = new ClassLoader();
         $autoloader->addClassMap('bad');
     }
@@ -140,7 +140,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testAddClassMapFromFileDoesNotExistException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $autoloader = new ClassLoader();
         $autoloader->addClassMapFromFile(__DIR__ . '/bad.php');
     }
@@ -157,7 +157,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testAddClassMapFromDirDoesNotExistException()
     {
-        $this->setExpectedException('Pop\Loader\Exception');
+        $this->expectException('Pop\Loader\Exception');
         $autoloader = new ClassLoader();
         $autoloader->addClassMapFromDir(__DIR__ . '/bad');
     }

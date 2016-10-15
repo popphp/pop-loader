@@ -21,7 +21,7 @@ namespace Pop\Loader;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2016 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    2.1.0
+ * @version    3.0.0
  */
 class ClassMapper
 {
@@ -50,7 +50,6 @@ class ClassMapper
      * Instantiate the class mapper object
      *
      * @param  mixed $source
-     * @return ClassMapper
      */
     public function __construct($source = null)
     {
@@ -81,6 +80,8 @@ class ClassMapper
                 $this->sources[] = $src;
             }
         }
+
+        return $this;
     }
 
     /**
@@ -153,6 +154,8 @@ class ClassMapper
                 $this->map[$class] = str_replace('\\', '/', $file);
             }
         }
+
+        return $this;
     }
 
     /**
@@ -185,6 +188,8 @@ class ClassMapper
         $code .= PHP_EOL . '];' . PHP_EOL;
 
         file_put_contents($output, $code);
+
+        return $this;
     }
 
     /**
