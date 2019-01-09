@@ -3,8 +3,9 @@
 namespace Pop\Loader\Test;
 
 use Pop\Loader\ClassLoader;
+use PHPUnit\Framework\TestCase;
 
-class LoaderClassMapTest extends \PHPUnit_Framework_TestCase
+class LoaderClassMapTest extends TestCase
 {
 
     /**

@@ -4,8 +4,9 @@ namespace Pop\Loader\Test;
 
 use Pop\Loader\ClassLoader;
 use Pop\Loader\ClassMapper;
+use PHPUnit\Framework\TestCase;
 
-class LoaderTest extends \PHPUnit_Framework_TestCase
+class LoaderTest extends TestCase
 {
 
     public function testConstructor()
