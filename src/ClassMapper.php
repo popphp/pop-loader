@@ -130,7 +130,7 @@ class ClassMapper
             $namespaceMatch    = [];
             $classFileContents = file_get_contents($file);
 
-            preg_match('/^(abstract|interface|class)(.*)$/m', $classFileContents, $classMatch);
+            preg_match('/^(abstract|interface|trait|class)(.*)$/m', $classFileContents, $classMatch);
             preg_match('/^namespace(.*)$/m', $classFileContents, $namespaceMatch);
 
             if (isset($classMatch[0])) {
@@ -138,6 +138,8 @@ class ClassMapper
                     $class = str_replace('abstract class ', '', $classMatch[0]);
                 } else if (strpos($classMatch[0], 'interface') !== false) {
                     $class = str_replace('interface ', '', $classMatch[0]);
+                } else if (strpos($classMatch[0], 'trait') !== false) {
+                    $class = str_replace('trait ', '', $classMatch[0]);
                 } else {
                     $class = str_replace('class ', '', $classMatch[0]);
                 }
